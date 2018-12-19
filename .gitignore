@@ -1,0 +1,9 @@
+Debug
+Release
+glm
+Shaders
+*.vcxproj
+*.filters
+*.user
+glm_helper.c
+glm_helper.h
