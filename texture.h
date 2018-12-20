@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <map>
 
 using namespace std;
 
@@ -13,6 +14,7 @@ struct Position
 public:
     float x;
     float y;
+    int index;
 
     Position() : x(0.0), y(0.0) {};
     Position(float x, float y) : x(x), y(y) {};
@@ -23,6 +25,29 @@ public:
             return x < rhs.x;
         return y < rhs.y;
     }
+
+    bool operator = (const Position & rhs) const
+    {
+        return x == rhs.x && y == rhs.y;
+    }
+};
+
+struct Edge
+{
+public :
+    int uIndex;
+    int vIndex;
+    vector<struct Position> lines;
+
+    Edge() : uIndex(-1), vIndex(-1) {};
+    Edge(int uIndex, int vIndex) : uIndex(uIndex), vIndex(vIndex) {};
+
+};
+
+struct Polygon
+{
+public :
+    vector<struct Edge> edges;
 };
 
 struct Rectangle
@@ -53,9 +78,15 @@ private :
     float height;
 
     vector<struct Rectangle> rectangles;
+    vector<struct Position> points;
+    map<struct Position, int> pointMap;
 
     bool CheckBasicJointPatternIsLegal(vector<struct Rectangle> &rectangles);
     bool IsInRange(float x, float y, float minX, float maxX, float minY, float maxY);
+
+    void BuildGraph();
+    void AddPoint(Position p, int &Count);
+
 
 };
 

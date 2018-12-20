@@ -3,6 +3,7 @@
 #include <cstring>
 #include <random>
 
+
 bool FloatEqual(float a, float b) { return fabs(a - b) <= 0.0005; }
 
 void Texture::BuildBasicJointPattern(float avgWidth, float avgHeight)
@@ -150,6 +151,8 @@ void Texture::BuildBasicJointPattern(float avgWidth, float avgHeight)
     else {
         cout << "Correct.\n";
     }
+
+    BuildGraph();
 }
 
 // private method
@@ -191,4 +194,31 @@ bool Texture::CheckBasicJointPatternIsLegal(vector<struct Rectangle> &rectangles
 bool Texture::IsInRange(float x, float y, float minX, float maxX, float minY, float maxY)
 {
     return x > minX && x < maxX && y > minY && y < maxY;
+}
+
+void Texture::BuildGraph()
+{
+    int Count = 0;
+    for (int i = 0; i < rectangles.size(); i++) {
+        Rectangle &rect = rectangles[i];
+
+        Position
+            p1(rect.minX, rect.minY),
+            p2(rect.minX, rect.maxY),
+            p3(rect.maxX, rect.minY),
+            p4(rect.maxX, rect.maxY);
+
+        AddPoint(p1, Count), AddPoint(p2, Count), AddPoint(p3, Count), AddPoint(p4, Count);
+    }
+
+    cout << "Total Point : " << Count << endl;
+}
+
+void Texture::AddPoint(Position p, int &Count)
+{
+    if (pointMap.find(p) == pointMap.end()) {
+        pointMap.insert({ p, Count });
+        p.index = Count++;
+        points.push_back(p);
+    }
 }
