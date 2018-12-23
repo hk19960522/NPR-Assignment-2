@@ -114,6 +114,7 @@ bool isScreenShoot = false;
 Texture texture;
 float textureWidth = 512, textureHeight = 512;
 float avgWidth = 20, avgHeight = 20;
+bool showDirection[4] = { 0 };
 
 vector<TextureRectangle> rectangles;
 
@@ -300,6 +301,20 @@ void drawRectangles()
             glEnd();
         }
     }
+
+    //for (int i = 0; i < texture.points.size(); i++) {
+    //    Position &pos = texture.points[i];
+    //    for (int j = 0; j < 4; j++) {
+    //        if (!showDirection[j] && pos.directIndex[j] != -1) {
+    //            int index = pos.directIndex[j];
+    //            glColor3f(1, 1, 1);
+    //            glBegin(GL_LINE_STRIP);
+    //            glVertex2f(pos.x, pos.y);
+    //            glVertex2f(texture.points[index].x, texture.points[index].y);
+    //            glEnd();
+    //        }
+    //    } 
+    //}
     //system("PAUSE");
 }
 
@@ -433,26 +448,6 @@ void keyboard(unsigned char key, int x, int y) {
 	case '7':
 	{
 		bx = true;
-		break;
-	}
-	case '8':
-	{
-		by = true;
-		break;
-	}
-	case '9':
-	{
-		bz = true;
-		break;
-	}
-	case '4':
-	{
-		brx = true;
-		break;
-	}
-	case '5':
-	{
-		bry = true;
 		break;
 	}
 	case '6':
@@ -730,26 +725,26 @@ void keyboardup(unsigned char key, int x, int y)
 		bx = false;
 		break;
 	}
-	case '8':
-	{
-		by = false;
-		break;
-	}
-	case '9':
-	{
-		bz = false;
-		break;
-	}
-	case '4':
-	{
-		brx = false;
-		break;
-	}
-	case '5':
-	{
-		bry = false;
-		break;
-	}
+    case '2':
+    {
+        showDirection[0] = !showDirection[0];
+        break;
+    }
+    case '3':
+    {
+        showDirection[1] = !showDirection[1];
+        break;
+    }
+    case '4':
+    {
+        showDirection[2] = !showDirection[2];
+        break;
+    }
+    case '5':
+    {
+        showDirection[3] = !showDirection[3];
+        break;
+    }
 	case '6':
 	{
 		brz = false;

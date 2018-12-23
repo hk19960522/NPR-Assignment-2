@@ -337,6 +337,7 @@ void Texture::BuildGraph()
     }
 
     cout << "Edge Count : " << Count << endl;
+    PointsDisplacement();
 }
 
 void Texture::AddPoint(Position p, int &Count)
@@ -355,5 +356,47 @@ void Texture::AddEdge(Edge e, int &Count)
         edgeMap.insert({ p, Count });
         e.index = Count++;
         edges.push_back(e);
+    }
+}
+
+void Texture::PointsDisplacement()
+{
+    for (int i = 0; i < points.size(); i++) {
+        Position &pos = points[i];
+
+        int direction[4];
+        int directionCount = 0;
+        for (int j = 0; j < 4; j++) {
+            if (pos.directIndex[j] != -1) {
+                direction[directionCount++] = j;
+            }
+        }
+
+        // Corner, don't need displace
+        if (directionCount == 2) continue;
+
+        int index = rand() % directionCount;
+        float displacementValue = (float)(rand() % 100) / 10.0;
+        switch (direction[index])
+        {
+        case 0:
+            pos.y += displacementValue;
+            break;
+
+        case 1:
+            pos.y -= displacementValue;
+            break;
+
+        case 2:
+            pos.x -= displacementValue;
+            break;
+
+        case 3:
+            pos.x += displacementValue;
+            break;
+
+        default:
+            break;
+        }
     }
 }

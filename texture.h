@@ -114,6 +114,7 @@ private :
     void AddPoint(Position p, int &Count);
     void AddEdge(Edge e, int &Count);
 
+    void PointsDisplacement();
 };
 
 
