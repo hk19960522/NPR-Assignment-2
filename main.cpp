@@ -104,7 +104,6 @@ GLfloat ball_pos[] = { 0.0, 0.0, 0.0 };
 GLfloat ball_rot[] = { 0.0, 0.0, 0.0 };
 
 #define deltaTime (10) // in ms (1e-3 second)
-//float time;
 
 GLuint vboID, fboID[3];
 GLuint program;
@@ -116,7 +115,7 @@ Texture texture;
 float textureWidth = 512, textureHeight = 512;
 float avgWidth = 20, avgHeight = 20;
 
-vector<struct Rectangle> rectangles;
+vector<TextureRectangle> rectangles;
 
 void Tick(int id)
 {
@@ -253,30 +252,53 @@ void screenshot(char filename[160], int x, int y)
 void drawRectangles()
 {
     //cout << rectangles.size() << endl;
-    for (int i = 0; i < rectangles.size(); i++) {
-        struct Rectangle rect = rectangles[i];
+    //for (int i = 0; i < rectangles.size(); i++) {
+    //    TextureRectangle rect = rectangles[i];
 
-        glColor3f(0, 1, 0);
-        glBegin(GL_QUADS);
-        glVertex2f(rect.minX, rect.minY);
-        glVertex2f(rect.minX, rect.maxY);
-        glVertex2f(rect.maxX, rect.maxY);
-        glVertex2f(rect.maxX, rect.minY);
-        glEnd();
-        //cout << rect.minX << " " << rect.maxX << " " << rect.minY << " " << rect.maxY << endl;
-    }
+    //    glColor3f(0, 1, 0);
+    //    glBegin(GL_QUADS);
+    //    glVertex2f(rect.minX, rect.minY);
+    //    glVertex2f(rect.minX, rect.maxY);
+    //    glVertex2f(rect.maxX, rect.maxY);
+    //    glVertex2f(rect.maxX, rect.minY);
+    //    glEnd();
+    //    cout << rect.minX << " " << rect.maxX << " " << rect.minY << " " << rect.maxY << endl;
+    //}
 
-    for (int i = 0; i < rectangles.size(); i++) {
-        struct Rectangle rect = rectangles[i];
+    //for (int i = 0; i < rectangles.size(); i++) {
+    //    TextureRectangle rect = rectangles[i];
+
+    //    glColor3f(1, 0, 0);
+    //    glBegin(GL_LINE_STRIP);
+    //    glVertex2f(rect.minX, rect.minY);
+    //    glVertex2f(rect.minX, rect.maxY);
+    //    glVertex2f(rect.maxX, rect.maxY);
+    //    glVertex2f(rect.maxX, rect.minY);
+    //    glVertex2f(rect.minX, rect.minY);
+    //    glEnd();
+    //}
+
+    /*for (int i = 0; i < texture.edges.size(); i++) {
+        Edge e = texture.edges[i];
 
         glColor3f(1, 0, 0);
         glBegin(GL_LINE_STRIP);
-        glVertex2f(rect.minX, rect.minY);
-        glVertex2f(rect.minX, rect.maxY);
-        glVertex2f(rect.maxX, rect.maxY);
-        glVertex2f(rect.maxX, rect.minY);
-        glVertex2f(rect.minX, rect.minY);
+        glVertex2f(texture.points[e.uIndex].x, texture.points[e.uIndex].y);
+        glVertex2f(texture.points[e.vIndex].x, texture.points[e.vIndex].y);
         glEnd();
+
+    }*/
+
+    for (int i = 0; i < texture.polygons.size(); i++) {
+        TexturePolygon &poly = texture.polygons[i];
+        for (int j = 0; j < poly.edges.size(); j++) {
+            Edge &e = texture.edges[poly.edges[j]];
+            glColor3f(0, 0, 1);
+            glBegin(GL_LINE_STRIP);
+            glVertex2f(texture.points[e.uIndex].x, texture.points[e.uIndex].y);
+            glVertex2f(texture.points[e.vIndex].x, texture.points[e.vIndex].y);
+            glEnd();
+        }
     }
     //system("PAUSE");
 }

@@ -2,6 +2,9 @@
 #include <cstdio>
 #include <cstring>
 #include <random>
+#include <algorithm>
+#include <set>
+#include <utility>
 
 
 bool FloatEqual(float a, float b) { return fabs(a - b) <= 0.0005; }
@@ -11,8 +14,8 @@ void Texture::BuildBasicJointPattern(float avgWidth, float avgHeight)
     int rectangleCount = 0;
     float widthCount = 0.0;
 
-    vector<Rectangle> nowRects;
-    vector<Rectangle> preRects;
+    vector<TextureRectangle> nowRects;
+    vector<TextureRectangle> preRects;
 
     while (true) {
         bool haveNewRectangle = false;
@@ -33,7 +36,7 @@ void Texture::BuildBasicJointPattern(float avgWidth, float avgHeight)
             if (FloatEqual(minX, maxX) || FloatEqual(hei, 0)) continue;
             // Find the fittest y coordinate ( height )
             for (int i = 0; i < rectangles.size(); i++) {
-                Rectangle &rect = rectangles[i];
+                TextureRectangle &rect = rectangles[i];
                 if (rect.maxX > minX && rect.minX < maxX) {
                     minY = max(minY, rect.maxY);
                     if (FloatEqual(minY, height)) {
@@ -51,7 +54,7 @@ void Texture::BuildBasicJointPattern(float avgWidth, float avgHeight)
                     index = -1;
                     minY = 0;
                     for (int i = 0; i < rectangles.size(); i++) {
-                        Rectangle &rect = rectangles[i];
+                        TextureRectangle &rect = rectangles[i];
                         if (rect.maxX > minX && rect.minX <= minX) {
                             minY = max(minY, rect.maxY);
                             if (FloatEqual(minY, height)) {
@@ -67,7 +70,7 @@ void Texture::BuildBasicJointPattern(float avgWidth, float avgHeight)
                     else {
                         minY = 0;
                         for (int i = 0; i < rectangles.size(); i++) {
-                            Rectangle &rect = rectangles[i];
+                            TextureRectangle &rect = rectangles[i];
                             if (rect.maxX > minX && rect.minX < maxX) {
                                 minY = max(minY, rect.maxY);
                                 if (FloatEqual(minY, height)) {
@@ -99,7 +102,7 @@ void Texture::BuildBasicJointPattern(float avgWidth, float avgHeight)
             while (nowX < maxX) {
                 index = -1;
                 for (int i = 0; i < rectangles.size(); i++) {
-                    Rectangle &rect = rectangles[i];
+                    TextureRectangle &rect = rectangles[i];
                     if (rect.maxX > nowX && rect.minX <= nowX) {
                         if (!FloatEqual(rect.maxY, minY)) {
                             if (index == -1 || rect.maxY > rectangles[index].maxY) {
@@ -117,7 +120,7 @@ void Texture::BuildBasicJointPattern(float avgWidth, float avgHeight)
                 if (index == -2) continue;
 
                 if (index != -1) {
-                    Rectangle newRect(
+                    TextureRectangle newRect(
                         nowX, rectangles[index].maxY,
                         min(rectangles[index].maxX, maxX), minY);
                     rectangles.push_back(newRect);
@@ -132,7 +135,7 @@ void Texture::BuildBasicJointPattern(float avgWidth, float avgHeight)
             }
             
 
-            Rectangle newRect(minX, minY, maxX, maxY);
+            TextureRectangle newRect(minX, minY, maxX, maxY);
             rectangles.push_back(newRect);
             haveNewRectangle = true;
             cout << minX << " " << maxX << " & " << minY << " " << maxY << endl;
@@ -157,16 +160,16 @@ void Texture::BuildBasicJointPattern(float avgWidth, float avgHeight)
 
 // private method
 
-bool Texture::CheckBasicJointPatternIsLegal(vector<struct Rectangle> &rectangles)
+bool Texture::CheckBasicJointPatternIsLegal(vector<TextureRectangle> &rectangles)
 {
     float area = 0.0;
     int rectNum = rectangles.size();
     for (int i = 0; i < rectNum; i++) {
-        Rectangle& rectA = rectangles[i];
+        TextureRectangle& rectA = rectangles[i];
         for (int j = 0; j < rectNum; j++) {
             if (i == j) continue;
 
-            Rectangle& rectB = rectangles[j];
+            TextureRectangle& rectB = rectangles[j];
             
             if (IsInRange(rectA.minX, rectA.minY, rectB.minX, rectB.maxX, rectB.minY, rectB.maxY) ||
                 IsInRange(rectA.minX, rectA.maxY, rectB.minX, rectB.maxX, rectB.minY, rectB.maxY) ||
@@ -200,7 +203,7 @@ void Texture::BuildGraph()
 {
     int Count = 0;
     for (int i = 0; i < rectangles.size(); i++) {
-        Rectangle &rect = rectangles[i];
+        TextureRectangle &rect = rectangles[i];
 
         Position
             p1(rect.minX, rect.minY),
@@ -212,6 +215,128 @@ void Texture::BuildGraph()
     }
 
     cout << "Total Point : " << Count << endl;
+
+    Count = 0;
+    vector<Position> pos(points);
+    set<pair<int, int>> s;
+    sort(pos.begin(), pos.end());
+
+    for (int i = 0; i < rectangles.size(); i++) {
+        TextureRectangle &rect = rectangles[i];
+        TexturePolygon poly;
+
+        Position
+            p1(rect.minX, rect.minY),
+            p2(rect.maxX, rect.minY),
+            p3(rect.maxX, rect.maxY),
+            p4(rect.minX, rect.maxY);
+
+        // search to right
+        int index = lower_bound(pos.begin(), pos.end(), p1) - pos.begin();
+        int nextIndex = index + 1;
+        while (nextIndex < pos.size()) {
+            Position &p = pos[nextIndex];
+            if (p.y == p1.y && p.x > p1.x) {
+                // Edge
+                points[pos[index].index].directIndex[3] = p.index;
+                points[p.index].directIndex[2] = pos[index].index;
+
+                Edge edge(min(p.index, pos[index].index), max(p.index, pos[index].index));
+                AddEdge(edge, Count);
+
+                //cout << "From " << points[pos[index].index].x << " " << points[pos[index].index].y << endl;
+                //cout << "To " << points[p.index].x << " " << points[p.index].y << " ....\n";
+
+                poly.edges.push_back(edgeMap[{edge.uIndex, edge.vIndex}]);
+                if (p == p2) {
+                    break;
+                }
+                index = nextIndex;
+            }
+            //index = nextIndex;
+            nextIndex++;
+        }
+
+        // search to top
+        index = nextIndex;
+        nextIndex = index + 1;
+        while (nextIndex < pos.size()) {
+            Position &p = pos[nextIndex];
+            if (p.x == p2.x && p.y > p2.y) {
+                // Edge
+                points[pos[index].index].directIndex[0] = p.index;
+                points[p.index].directIndex[1] = pos[index].index;
+
+                Edge edge(min(p.index, pos[index].index), max(p.index, pos[index].index));
+                AddEdge(edge, Count);
+
+                //cout << "From " << points[pos[index].index].x << " " << points[pos[index].index].y << endl;
+                //cout << "To " << points[p.index].x << " " << points[p.index].y << " ....\n";
+
+                poly.edges.push_back(edgeMap[{edge.uIndex, edge.vIndex}]);
+                if (p == p3) break;
+                index = nextIndex;
+            }
+            //index = nextIndex;
+            nextIndex++;
+        }
+
+        // search to left
+        index = nextIndex;
+        nextIndex = index - 1;
+        while (nextIndex >= 0) {
+            Position &p = pos[nextIndex];
+            if (p.y == p3.y && p.x < p3.x) {
+                // Edge
+                points[pos[index].index].directIndex[2] = p.index;
+                points[p.index].directIndex[3] = pos[index].index;
+
+                Edge edge(min(p.index, pos[index].index), max(p.index, pos[index].index));
+                AddEdge(edge, Count);
+
+                //cout << "From " << points[pos[index].index].x << " " << points[pos[index].index].y << endl;
+                //cout << "To " << points[p.index].x << " " << points[p.index].y << " ....\n";
+
+                poly.edges.push_back(edgeMap[{edge.uIndex, edge.vIndex}]);
+                if (p == p4) break;
+                index = nextIndex;
+            }
+            //index = nextIndex;
+            nextIndex--;
+        }
+
+        // search to down
+        index = nextIndex;
+        nextIndex = index - 1;
+        while (nextIndex >= 0) {
+            Position &p = pos[nextIndex];
+            if (p.x == p4.x && p.y < p4.y) {
+                // Edge
+                points[pos[index].index].directIndex[1] = p.index;
+                points[p.index].directIndex[0] = pos[index].index;
+
+                Edge edge(min(p.index, pos[index].index), max(p.index, pos[index].index));
+                AddEdge(edge, Count);
+
+                //cout << "From " << points[pos[index].index].x << " " << points[pos[index].index].y << endl;
+                //cout << "To " << points[p.index].x << " " << points[p.index].y << " ....\n";
+
+                poly.edges.push_back(edgeMap[{edge.uIndex, edge.vIndex}]);
+                if (p == p1) break;
+                index = nextIndex;
+            }
+            //index = nextIndex;
+            nextIndex--;
+        }
+
+        polygons.push_back(poly); 
+        for (int i = 0; i < poly.edges.size(); i++) {
+            cout << poly.edges[i] << " ";
+        }
+        cout << endl;
+    }
+
+    cout << "Edge Count : " << Count << endl;
 }
 
 void Texture::AddPoint(Position p, int &Count)
@@ -220,5 +345,15 @@ void Texture::AddPoint(Position p, int &Count)
         pointMap.insert({ p, Count });
         p.index = Count++;
         points.push_back(p);
+    }
+}
+
+void Texture::AddEdge(Edge e, int &Count)
+{
+    pair<int, int> p(e.uIndex, e.vIndex);
+    if (edgeMap.find(p) == edgeMap.end()) {
+        edgeMap.insert({ p, Count });
+        e.index = Count++;
+        edges.push_back(e);
     }
 }
